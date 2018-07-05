@@ -119,7 +119,7 @@ def SoftmaxModel(facemodel,classes=5,input_shape=(3,96,96)):
 print("Building classification model...")
 softmaxmodel = SoftmaxModel(facemodel,classes=6)
 print("Fitting model...")
-softmaxmodel.fit(x=X_train,y=Y_train,epochs=1)
+softmaxmodel.fit(x=X_train,y=Y_train,epochs=5)
 
 print("Evaluating fitted model")
 accuracy = softmaxmodel.evaluate(x=X_test,y=Y_test)[1]
