@@ -1,13 +1,10 @@
-# Getting Started
+# Azure ML components
 
-Welcome to your new Azure Machine Learning Project.
+1. Experimentation Account: Required for Azure ML Workbench. Contains workspaces, which in turn contain projects. You can add multiple users (seats).
+2. Model Management Account: Used to register, maintain and deploy containerized ML services. This can be done with the CLI (or API): https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/model-management-cli-reference
 
-For more information go to <http://aka.ms/AzureMLGettingStarted>
 
-Configure your favorite IDE and open this project using the **File menu**.
 
-Add and prepare data sources using the **Data** tab.
 
-Add and explore notebooks using the **Notebook** tab.
 
-Explore past runs and access project outputs using the **Run History** tab.
+

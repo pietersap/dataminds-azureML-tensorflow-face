@@ -29,6 +29,14 @@ dependencies:
     - --index-url https://azuremldownloads.azureedge.net/python-repository/preview
     - --extra-index-url https://pypi.python.org/simple
     - azureml-requirements
+    - pydot
+    - tensorflow
+    - keras
+    - matplotlib
+    - numpy
+    - opencv-python
+    - sklearn
+    - scipy
 
     # The API for Azure Machine Learning Model Management Service.
     # Details: https://github.com/Azure/Machine-Learning-Operationalization

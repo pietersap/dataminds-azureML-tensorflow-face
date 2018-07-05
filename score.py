@@ -5,11 +5,19 @@ from azureml.api.schema.sampleDefinition import SampleDefinition
 from azureml.api.realtime.services import generate_schema
 from azureml.assets import get_local_path
 
+from keras.models import load_model
+import numpy as np
+
+SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
+
+# TO DO
+# - add model and weights files
+# - set paths to these files in code below
+# - add myImageLibrary
+
 # Prepare the web service definition by authoring
 # init() and run() functions. Test the functions
 # before deploying the web service.
-
-model = None
 
 def init():
     # Get the path to the model asset
@@ -17,25 +25,26 @@ def init():
     
     # Load model using appropriate library and function
     global model
-    # model = model_load_function(local_path)
-    model = 42
-
-def run(input_df):
-    import json
+    print("Loading model from shared folder...")
+    model = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))
     
+
+def run(input_bytes):
+       
     # Predict using appropriate functions
     # prediction = model.predict(input_df)
+    img = np.loads(input_bytes)
+    prediction = model.predict(x=img)
 
-    prediction = "%s %d" % (str(input_df), model)
-    return json.dumps(str(prediction))
+    return json.dumps(str(prediction.tolist()))
 
 def generate_api_schema():
     import os
     print("create schema")
-    sample_input = "sample data text"
-    inputs = {"input_df": SampleDefinition(DataTypes.STANDARD, sample_input)}
+    sample_input = "byestring_representing_img"
+    inputs = {"input_bytes": SampleDefinition(DataTypes.STANDARD, sample_input)}
     os.makedirs('outputs', exist_ok=True)
-    print(generate_schema(inputs=inputs, filepath="outputs/schema.json", run_func=run))
+    print(generate_schema(inputs=inputs, filepath=os.path.join("outputs","schema.json"), run_func=run))
 
 # Implement test code to run in IDE or Azure ML Workbench
 if __name__ == '__main__':
@@ -44,15 +53,7 @@ if __name__ == '__main__':
 
     logger = get_azureml_logger()
 
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--generate', action='store_true', help='Generate Schema')
-    args = parser.parse_args()
-
-    if args.generate:
-        generate_api_schema()
+    generate_api_schema()
 
     init()
-    input = "{}"
-    result = run(input)
-    logger.log("Result",result)
+
