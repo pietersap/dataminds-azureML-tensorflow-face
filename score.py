@@ -7,8 +7,13 @@ from azureml.assets import get_local_path
 
 from keras.models import load_model
 import numpy as np
+import os
 
-SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
+#SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
+#this fails when creating the service. This environment variable and the shared directory are not available
+#in the service container. The shared folder is still useful in the train.py script though, for storing the data,
+#the pretrained model and weights,...
+#just pick up the trained model manually and store in project directory and use load_model("my_model.h5").
 
 # TO DO
 # - add model and weights files
@@ -26,7 +31,7 @@ def init():
     # Load model using appropriate library and function
     global model
     print("Loading model from shared folder...")
-    model = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))
+    model = load_model("my_model.h5")
     
 
 def run(input_bytes):
@@ -36,7 +41,7 @@ def run(input_bytes):
     img = np.loads(input_bytes)
     prediction = model.predict(x=img)
 
-    return json.dumps(str(prediction.tolist()))
+    return str(prediction.tolist())
 
 def generate_api_schema():
     import os
