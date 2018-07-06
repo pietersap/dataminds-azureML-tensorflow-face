@@ -121,9 +121,7 @@ softmaxmodel = SoftmaxModel(facemodel,classes=6)
 print("Fitting model...")
 softmaxmodel.fit(x=X_train,y=Y_train,epochs=5)
 
-print("Evaluating fitted model")
-accuracy = softmaxmodel.evaluate(x=X_test,y=Y_test)[1]
-logger.log("my_accuracy",accuracy)
+
 
 #saving to a single hdf5 file. The file will contain
 #the architecture, weights, training config (loss, optimizer) and the state
@@ -133,3 +131,8 @@ softmaxmodel.save(os.path.join("outputs","my_model.h5"))
 print("Saving model to shared folder")
 softmaxmodel.save(os.path.join(SHARED_FOLDER,"my_model.h5"))
 print("Done")
+
+print("loading and Evaluating fitted model")
+softmaxmodel = load_model("my_model.h5")
+accuracy = softmaxmodel.evaluate(x=X_test,y=Y_test)[1]
+logger.log("my_accuracy",accuracy)
