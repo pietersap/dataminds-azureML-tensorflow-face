@@ -8,7 +8,8 @@ import cv2
 import glob
 import os
 import math
-
+import pickle
+import base64
 
 
 def showimage(title,img):
@@ -51,8 +52,7 @@ def resize_crop(image,square_size):
     result = cv2.resize(max_square_image,(square_size,square_size),0,0)
     return result
 
-def get_face(image):
-    pass
+
 
 def get_images(parent_directory):
     results = glob.glob(parent_directory+'/*.jpg')+glob.glob(parent_directory+'/*.jpeg')+glob.glob(parent_directory+'/*.png')
@@ -60,3 +60,19 @@ def get_images(parent_directory):
     for result in results:
         images.append(cv2.imread(result))
     return images
+
+def preprocess(img,transpose=True):
+    #takes an image (face) of shape (x,x,3), transforms it to shape (1,3,x,x), pickles it and encodes to base64.
+    if transpose:
+        img = img.transpose(2,0,1)
+    img = np.expand_dims(img,axis=0)
+    img_pkl = pickle.dumps(img)
+    img_base64 = base64.b64encode(img_pkl)
+    return img_base64
+
+
+
+
+
+
+

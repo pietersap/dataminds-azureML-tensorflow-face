@@ -110,8 +110,7 @@ def SoftmaxModel(facemodel,classes=5,input_shape=(3,96,96)):
     X_input = Input(input_shape)
     encoding = facemodel(X_input)
     X = Activation('relu')(encoding)
-    X = Dense(classes,activation='softmax')(X)
-    
+    X = Dense(classes,activation='softmax')(X)    
     model = Model(inputs=X_input,outputs=X)
     model.compile(loss='categorical_crossentropy',optimizer='Adam',metrics=['accuracy'])
     return model
