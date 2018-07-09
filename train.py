@@ -19,10 +19,13 @@ from keras.models import Model
 
 import matplotlib.pyplot as plt
 
+from sklearn.metrics import confusion_matrix
+
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 
-unknown = False
+unknown = True
+EPOCHS = 5
 
 # initialize the logger
 logger = get_azureml_logger()
@@ -99,6 +102,7 @@ y_softmax = np.array([0]*faces_buscemi_array.shape[0]+[1]*faces_clooney_array.sh
 y_softmax_pieter = np.array([4]*faces_pieter3_array.shape[0])
 
 
+
 if unknown:
     y_softmax_all = np.array(list(y_softmax) + [5] * faces_unknown_array.shape[0])
     y_softmax_all_oh = convert_to_one_hot(y_softmax_all,6).T 
@@ -109,10 +113,13 @@ else:
     y_softmax_pieter_oh = convert_to_one_hot(y_softmax_pieter,5).T
 
 
+
 if unknown:
     X_train, X_test, Y_train, Y_test = train_test_split(faces_softmax_all,y_softmax_all_oh)
 else:
     X_train, X_test, Y_train, Y_test = train_test_split(faces_softmax,y_softmax_oh)
+
+print("SHAPE: ",Y_test.shape)
 
 print("Loading facenet model...")
 facemodel = load_model(MODEL_PATH)
@@ -152,7 +159,7 @@ if unknown:
 else:
     softmaxmodel = SoftmaxModel(facemodel,classes=5)
 print("Fitting model...")
-softmaxmodel.fit(x=X_train,y=Y_train,epochs=1)
+softmaxmodel.fit(x=X_train,y=Y_train,epochs=EPOCHS)
 
 
 
@@ -165,12 +172,19 @@ print("Saving model to shared folder")
 softmaxmodel.save(os.path.join(SHARED_FOLDER,"my_model.h5"))
 print("Done")
 
-print("Evaluating fitted model")
-#softmaxmodel = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))
+print("loading and Evaluating fitted model")
+softmaxmodel = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))
 accuracy = softmaxmodel.evaluate(x=X_test,y=Y_test)[1]
 print(accuracy)
 logger.log("accuracy",accuracy)
+pred = softmaxmodel.predict(X_test)
+cm = confusion_matrix(np.argmax(Y_test,axis=1),np.argmax(pred,axis=1))
+print(cm)
 
-accuracy2 = softmaxmodel.evaluate(x=faces_pieter3_array,y=y_softmax_pieter_oh)
+accuracy2 = softmaxmodel.evaluate(x=faces_pieter3_array,y=y_softmax_pieter_oh)[1]
 print(accuracy2)
 logger.log("accuracy2",accuracy)
+pred2 = softmaxmodel.predict(faces_pieter3_array)
+cm2 = confusion_matrix(np.argmax(y_softmax_pieter_oh,axis=1),np.argmax(pred2,axis=1))
+print(cm2)
+print(pred2)
