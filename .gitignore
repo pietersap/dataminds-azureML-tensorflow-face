@@ -9,3 +9,5 @@ pieter3/
 new_pieter/
 .vscode/settings.json
 outputs/
+__pycache__/
+.vscode/settings.json

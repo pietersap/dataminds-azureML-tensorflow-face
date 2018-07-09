@@ -26,7 +26,7 @@ def main(args):
     if len(faces) == 0:
         print("No face found. Try a different image")
     else:
-        face = faces[0]    
+        face = np.around(faces[0]/255.0, decimals = 12)    
         img_base64 = myImageLibrary.preprocess(face)
 
         #call the webservice here (see also the removeThis sample project in workbench)
@@ -40,12 +40,13 @@ def main(args):
         startTime = time.time()
         res = requests.post(url,headers=headers,data=img_base64)
         try:
-            resDict = json.loads(res.json())
-            apiDuration   = int(float(resDict['executionTimeMs']))
-            localDuration = int(float(1000.0*(time.time() - startTime)))
-            print(resDict)
+            print("RESULT: ",res)
+            #resDict = json.loads(res.json())
+            # apiDuration   = int(float(resDict['executionTimeMs']))
+            # localDuration = int(float(1000.0*(time.time() - startTime)))
+            # print(resDict)
         except:
-            print("ERROR: webservice returned message " + res.text)
+            print("ERROR")
     
 
 

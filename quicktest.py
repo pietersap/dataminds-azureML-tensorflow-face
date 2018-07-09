@@ -20,7 +20,13 @@ print("loading model...")
 model = load_model("my_model.h5")
 print("model loaded")
 
-def run(input_bytes):
+
+def direct_run(image,model):
+    prediction = model.predict(x=image)
+    print(prediction)
+    return prediction
+
+def run(input_bytes,model):
 
     time_start = time.time()
     print("Decoding and loading to numpy...")  
@@ -33,23 +39,21 @@ def run(input_bytes):
     print("prediction took {0} seconds".format(total_time))
     return str(prediction.tolist()), total_time
 
-images = myImageLibrary.get_images(os.path.join("images","images_all","pieter"))
+images = myImageLibrary.get_images(os.path.join("images","images_all","pieter4"))
 faces = [np.around(myImageLibrary.resize_crop(image,96).transpose(2,0,1)/255.0,decimals=12) for image in myImageLibrary.extract_faces_bulk(images,FACE_CASCADE)]
 
 
 for face in faces:
     # try:
         start_time = time.time()
-        print("pickling image")
+        print("preprocessing image")
         img_base64 = myImageLibrary.preprocess(face,transpose=False)
         total_time = time.time() - start_time
         print("preprocessing took {0} seconds".format(total_time))        
-        r = run(img_base64)
+        r = run(img_base64,model)
+        # r = direct_run(np.expand_dims(face,axis=0),model)
         # print(r)
     # except:
     #     print("this one failed")
 
-def direct_run(image,model):
-    prediction = model.predict(x=image)
-    print(prediction)
-    return prediction
+

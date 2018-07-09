@@ -41,13 +41,10 @@ def init():
 def run(input_bytes):
 
     input_bytes = base64.b64decode(input_bytes)   
-    # Predict using appropriate functions
-    # prediction = model.predict(input_df)
     img = np.loads(input_bytes)
     prediction = model.predict(x=img)
     index = np.argmax(prediction)
     return index
-    #return str(prediction.tolist())
 
 def generate_api_schema():
     import os
