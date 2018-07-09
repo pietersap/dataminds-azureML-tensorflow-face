@@ -24,24 +24,30 @@ import os
 # init() and run() functions. Test the functions
 # before deploying the web service.
 
+
+
+
+
 def init():
     # Get the path to the model asset
     # local_path = get_local_path('mymodel.model.link')
     
     # Load model using appropriate library and function
     global model
-    print("Loading model from shared folder...")
+    print("Loading model...")
     model = load_model("my_model.h5")
     
 
 def run(input_bytes):
-       
+
+    input_bytes = base64.b64decode(input_bytes)   
     # Predict using appropriate functions
     # prediction = model.predict(input_df)
     img = np.loads(input_bytes)
     prediction = model.predict(x=img)
-
-    return str(prediction.tolist())
+    index = np.argmax(prediction)
+    return index
+    #return str(prediction.tolist())
 
 def generate_api_schema():
     import os

@@ -3,5 +3,9 @@
 azureml-logs
 *.dprep.user
 .vscode/settings.json
-
+images/
 .vscode/settings.json
+pieter3/
+new_pieter/
+.vscode/settings.json
+outputs/
