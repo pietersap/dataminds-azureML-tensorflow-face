@@ -11,3 +11,6 @@ new_pieter/
 outputs/
 __pycache__/
 .vscode/settings.json
+testEncoding.py
+quicktest.py
+.vscode/settings.json

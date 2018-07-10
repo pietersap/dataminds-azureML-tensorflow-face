@@ -7,11 +7,9 @@ from keras.models import load_model
 import numpy as np
 import base64
 
-CASCADE_FOLDER = "C:/Users/pisa/AppData/Local/Programs/Python/Python35/Lib/site-packages/cv2/data"
-FACE_CASCADE = cv2.CascadeClassifier(os.path.join(CASCADE_FOLDER,'haarcascade_frontalface_default.xml'))
 
-def get_model():
-    return load_model("my_model.h5")
+FACE_CASCADE = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
 
 index_to_name = {
     "0":"buscemi",
@@ -22,12 +20,15 @@ index_to_name = {
     "5":"unknown"
 }
 
-# global model
-# model = get_model()
-
 # this method for quick testing differs from run() in score.py
 # in that it takes a second parameter, the model. In score.py, this is a global
 # variable. 
+
+def main():
+
+    #model = load_model("my_model.h5")
+    monitor_faces(model,plot=False)
+    #monitor_faces(plot=False)
 
 def run(input_bytes,model):
 
@@ -37,7 +38,8 @@ def run(input_bytes,model):
     index = np.argmax(prediction)
     return prediction
 
-def monitor_faces(model):
+def monitor_faces(model,plot=True):
+#def monitor_faces(plot=True):
     cam = cv2.VideoCapture(0)
     
     while True:
@@ -45,9 +47,10 @@ def monitor_faces(model):
         ret_val, img = cam.read()
         # cv2.imwrite("current_frame.jpg",img)
         # img = cv2.imread("current_frame.jpg")
-        cv2.imshow('images',img)
-        if cv2.waitKey(1) == 27: 
-            break  # esc to quit
+        if plot:
+            cv2.imshow('images',img)
+            if cv2.waitKey(1) == 27: 
+                break  # esc to quit
         faces = myImageLibrary.extract_face(img,FACE_CASCADE)
         if len(faces) == 0:
             print("nobody detected")
@@ -63,5 +66,7 @@ def monitor_faces(model):
     cv2.destroyAllWindows()
     cam.release()
 
-model = load_model("my_model.h5")
-monitor_faces(model)
+if __name__ == '__main__':
+    
+    main()
+

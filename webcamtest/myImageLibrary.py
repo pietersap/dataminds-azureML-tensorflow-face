@@ -1,13 +1,7 @@
 import numpy as np
-import pydot
-from IPython.display import SVG
-import scipy.misc
-from matplotlib.pyplot import imshow
-import matplotlib.pyplot as plt
 import cv2
 import glob
 import os
-import math
 import pickle
 import base64
 

@@ -8,6 +8,8 @@ from azureml.assets import get_local_path
 from keras.models import load_model
 import numpy as np
 import os
+import base64
+import json
 
 #SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
 #this fails when creating the service. This environment variable and the shared directory are not available
@@ -36,15 +38,30 @@ def init():
     global model
     print("Loading model...")
     model = load_model("my_model.h5")
+
+    global index_to_name
+    index_to_name = {
+    "0":"buscemi",
+    "1":"clooney",
+    "2":"dicaprio",
+    "3":"jennifer",
+    "4":"pieter",
+    "5":"unknown"
+}
     
 
 def run(input_bytes):
 
-    input_bytes = base64.b64decode(input_bytes)   
+    input_bytes = base64.b64decode(bytes(input_bytes,'utf-8'))
+    #input_bytes2 = bytes(input_bytes,'utf-8')   
     img = np.loads(input_bytes)
     prediction = model.predict(x=img)
     index = np.argmax(prediction)
-    return index
+    outDict = {}
+    outDict["index"] = str(index)
+    outDict["label"] = index_to_name[str(index)]
+    outJsonString = json.dumps(outDict)
+    return (str(outJsonString))
 
 def generate_api_schema():
     import os
