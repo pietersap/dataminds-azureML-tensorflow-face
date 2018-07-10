@@ -1,15 +1,15 @@
-# Required Azure ML components
+# 0. Required Azure ML components
 
 1. Experimentation Account: Required for Azure ML Workbench. Contains workspaces, which in turn contain projects. You can add multiple users (seats).
 2. Model Management Account: Used to register, maintain and deploy containerized ML services with the CLI: https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/model-management-cli-reference
 
-# Overview
+# 1. Overview
 
 Building face recognition service using the Azure ML workbench and CLI. We are using a pretrained facenet model on which we add a dense layer with softmax activation for classification. The input to the service is a preprocessed image encoded as a string. 
 
-# Scripts
+# 2 Scripts
 
-## train.py
+## 2.1 train.py
 
 Train.py **trains and saves the model**. Images are read from file, faces are extracted with a cascade classifier and then these faces are used to train a model. Starting from a pretrained facenet model,we add an extra dense layer with softmax activation to classify our own images into 6 categories:
 
@@ -32,7 +32,7 @@ The trained keras model (my_model.h5) is saved to the outputs/ folder. This fold
 
 After training, save the model file in the project root directory so that it can be picked up by the score.py file (an alternative is to use the shared folder once again).
 
-## score.py
+## 2.2 score.py
 
 Score.py **generates an API schema (schema.json)** and is also **passed to the CLI to generate a scoring container image**.
 
@@ -44,7 +44,7 @@ Init() defines what happens when the service is first started. In our case, this
 
 Run(input_bytes) defines what happens with an input request. Since the schema was created with DataTypes.STANDARD, it expects a string as input. This string is an encoded version of an input, which is decoded by run(input_bytes) to a numpy array and served to the model. It returns a JSON string as output (required, must be JSON serializable. Otherwise the created webservice will not work). 
 
-## callService.py
+## 2.3 callService.py
 
 Used to the **test the service after deploying**. This reads an image from a file, extracts the face*, preprocesses** (encodes) it and then sends it the service. The data that is sent in the request must be a JSON string with a "input_bytes" key, i.e. exactly matching the name of the argument in run(input_bytes).
 
@@ -56,13 +56,13 @@ Unfortunately, the face must be extracted and processed into an encoded string i
 
 example usage: python callService.py --url (*service url*) --path (*path to local image*) --key (*authorization key, when using cluster environment*)
 
-# Deploying
+# 3 Deploying
 
-When the model and schema files (my_model.h5 and schema.json) are in place, the service can be deployed. Run these command in the project root:
+## 3.1 Setup 
 
-## Setup 
+When the model and schema files (my_model.h5 and schema.json) are in place, the service can be deployed. 
 
-First, a compute environment must be created. Typically, you will set up a local environment for testing and a cluster environment for deploying. You will also need your model management account.
+First, a compute environment must be created. Typically, you will set up a local environment for testing and a cluster environment for deploying. You will also need to create your model management account in advance. Both are one-time steps.
 
 More info can be found here, under 'prepare to operationalize locally': https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3
 
@@ -72,7 +72,7 @@ These commands do the following: Login in to Azure, set the environment, set the
 2. az ml env set --name (env name) --resource-group (rg name)
 3. az ml account modelmanagement set --name (account name) --resource-group (rg name)
 
-## Deploying
+## 3.2 Deploying
 
 Deploying is done in 4 steps: registering the model (with the given model file), creating a manifest (given the score.py file and the schema), building an image from this manifest and creating a service from this image. Thus, the 4 main components in model management are **models, manifests, images and services.**
 
@@ -93,7 +93,7 @@ See the callService.py script for an example on how to use the service.
 
 See the docs for more info and options.
 
-# Webcamtest and deployToEdge folders (TO DO)
+# 4 Webcamtest and deployToEdge folders (TO DO)
 
 Testing the application in a container so that maybe we can do face recognition on the edge...??
 
