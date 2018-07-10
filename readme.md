@@ -5,7 +5,7 @@
 
 # Overview
 
-Building face recognition service using the Azure ML workbench and CLI. We are using a fa
+Building face recognition service using the Azure ML workbench and CLI. We are using a pretrained facenet model on which we add a dense layer with softmax activation for classification. The input to the service is a preprocessed image encoded as a string. 
 
 # Scripts
 
