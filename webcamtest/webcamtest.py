@@ -26,8 +26,8 @@ index_to_name = {
 
 def main():
 
-    #model = load_model("my_model.h5")
-    monitor_faces(model,plot=False)
+    model = load_model("my_model.h5")
+    monitor_faces(model,plot=True)
     #monitor_faces(plot=False)
 
 def run(input_bytes,model):
