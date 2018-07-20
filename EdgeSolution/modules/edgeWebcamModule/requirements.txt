@@ -1,5 +1,5 @@
 azure-iothub-device-client==1.4.0.0b3
 numpy
-opencv-python
+opencv-python==3.1.0.1
 tensorflow
 keras
