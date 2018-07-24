@@ -31,9 +31,11 @@ EPOCHS = 5
 logger = get_azureml_logger()
 # add experiment arguments
 parser = argparse.ArgumentParser()
-# parser.add_argument('--arg', action='store_true', help='My Arg')
+parser.add_argument('--epochs', help='Number of epochs', default=5,type=int)
 args = parser.parse_args()
-print(args)
+
+EPOCHS = args.epochs
+print("EPOCHS: {0}".format(EPOCHS))
 # This is how you log scalar metrics
 # logger.log("MyMetric", value)
 # Create the outputs folder - save any outputs you want managed by AzureML here
@@ -172,8 +174,8 @@ print("Saving model to shared folder")
 softmaxmodel.save(os.path.join(SHARED_FOLDER,"my_model.h5"))
 print("Done")
 
-print("loading and Evaluating fitted model")
-softmaxmodel = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))
+print("Evaluating fitted model")
+#softmaxmodel = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))
 accuracy = softmaxmodel.evaluate(x=X_test,y=Y_test)[1]
 print(accuracy)
 logger.log("accuracy",accuracy)

@@ -11,11 +11,12 @@ import os
 import base64
 import json
 
-#SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
+
 #this fails when creating the service. This environment variable and the shared directory are not available
 #in the service container. The shared folder is still useful in the train.py script though, for storing the data,
 #the pretrained model and weights,...
 #just pick up the trained model manually and store in project directory and use load_model("my_model.h5").
+
 
 # TO DO
 # - add model and weights files
@@ -27,9 +28,6 @@ import json
 # before deploying the web service.
 
 
-
-
-
 def init():
     # Get the path to the model asset
     # local_path = get_local_path('mymodel.model.link')
@@ -37,7 +35,14 @@ def init():
     # Load model using appropriate library and function
     global model
     print("Loading model...")
-    model = load_model("my_model.h5")
+
+    # CHANGE 2 SMALL THINGS BEFORE DEPLOYING:
+
+    #   it appears that you need to change code slightly before deploying. Use shared directory when submitting score.py to generate schema.
+    #   Change 'my_model.h5' before deploying because in command below, --name must match the path that is used for loading the model in score.py
+    #   Before deploying, also comment out below line, the env variable will not present in the service container image. 
+    #SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
+    model = load_model(os.path.join("my_model.h5"))
 
     global index_to_name
     index_to_name = {
