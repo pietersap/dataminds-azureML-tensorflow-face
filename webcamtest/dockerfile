@@ -1,8 +1,0 @@
-FROM python:3.5-jessie
-
-COPY . .
-
-RUN pip install -r requirements.txt
-
-CMD python webcamtest.py
-
