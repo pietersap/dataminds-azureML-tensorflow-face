@@ -55,7 +55,8 @@ def resize_crop(image,square_size):
 
 
 def get_images(parent_directory):
-    results = glob.glob(parent_directory+'/*.jpg')+glob.glob(parent_directory+'/*.jpeg')+glob.glob(parent_directory+'/*.png')
+    #results = glob.glob(parent_directory+'/*.jpg')+glob.glob(parent_directory+'/*.jpeg')+glob.glob(parent_directory+'/*.png')
+    results = glob.glob(os.path.join(parent_directory,'*.jpg'))+glob.glob(os.path.join(parent_directory,'*.jpeg'))+glob.glob(os.path.join(parent_directory,'*.png'))
     images = []
     for result in results:
         images.append(cv2.imread(result))

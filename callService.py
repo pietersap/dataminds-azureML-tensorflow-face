@@ -9,7 +9,8 @@ import myImageLibrary
 import base64
 import numpy as np
 
-FACE_CASCADE = cv2.CascadeClassifier("C:/Users/pisa/AppData/Local/Programs/Python/Python36-32/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
+#FACE_CASCADE = cv2.CascadeClassifier("C:/Users/pisa/AppData/Local/Programs/Python/Python36-32/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
+FACE_CASCADE = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
 def main(args):
     parser = argparse.ArgumentParser(description='Call the face recognition service')
@@ -50,6 +51,8 @@ def main(args):
             print("ERROR: webservice returned message " + res.text)
     
 
+def call_face_service_data(data,url):  
+    return None
 
 if __name__ == '__main__':
     from sys import argv
