@@ -1,9 +1,6 @@
 import numpy as np
 import pydot
-#from IPython.display import SVG
 import scipy.misc
-#from matplotlib.pyplot import imshow
-#import matplotlib.pyplot as plt
 import cv2
 import glob
 import os
@@ -62,10 +59,14 @@ def get_images(parent_directory):
         images.append(cv2.imread(result))
     return images
 
-def preprocess(img,transpose=True):
+def preprocess(img,transpose=True,normalize=False):
     #takes an image (face) of shape (x,x,3), transforms it to shape (1,3,x,x), pickles it and encodes to base64.
+    #also normalizes before encoding if normalize=True
+    #only transposes if tranpose=True
     if transpose:
         img = img.transpose(2,0,1)
+    if normalize:
+        img = np.around(img/255.0, decimals = 12) 
     img = np.expand_dims(img,axis=0)
     img_pkl = pickle.dumps(img)
     img_base64 = base64.b64encode(img_pkl)

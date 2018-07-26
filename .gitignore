@@ -5,8 +5,9 @@ azureml-logs
 .vscode/settings.json
 outputs/
 __pycache__/
-testEncoding.py
 quicktest.py
+webcamtest/
+EdgeSolution/
 create_sprite.py
 aml_config/gebadata3.compute
 aml_config/gebadata3.runconfig

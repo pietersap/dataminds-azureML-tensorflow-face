@@ -11,7 +11,7 @@ Building face recognition service using the Azure ML workbench and CLI. We are u
 
 ## 2.1 train.py
 
-Train.py **trains and saves the model**. Images are read from file, faces are extracted with a cascade classifier and then these faces are used to train a model. Starting from a pretrained facenet model,we add an extra dense layer with softmax activation to classify our own images into 6 categories:
+Train.py **trains and saves the model**. Images are read from files on the shared directory of the compute target, faces are extracted with a cascade classifier and then these faces are used to train a model. Starting from a pretrained facenet model,we add an extra dense layer with softmax activation to classify our own images into 6 categories:
 
 0. buscemi (Steve Buscemi)
 1. clooney (George Clooney)
@@ -26,23 +26,19 @@ Running this script can be done with the Workbench GUI. Select the script (e.g. 
 
 We are using the outputs folder and the shared folder. More info:   https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/how-to-read-write-files
 
-Input training data and the pretrained model are read from the shared folder. This is a requirement, since these files are to large to be saved in the project folder. Otherwise, they would need to be copied to the compute target every time an experiment is submitted. The shared folder is found with the environment variable "AZUREML_NATIVE_SHARE_DIRECTORY" in the workbench env.
+Input training data and the pretrained model are read from the shared folder. This is a requirement, since these files are to large to be saved in the project folder. Otherwise, they would need to be copied to the compute target every time an experiment is submitted. The shared folder is found with the environment variable "AZUREML_NATIVE_SHARE_DIRECTORY" in the workbench env and can be optionally changed in the 'targetname.compute' file of the compute target.
 
-The trained keras model (my_model.h5) is saved to the outputs/ folder. This folder must be named outputs/ and receives special treatment. It is not submitted to the compute target when submitting an experiment. Any outputs saved to this model, can be retrieved after a run in the GUI by selecting the run and saving the outputs to any folder. Files saved to the outputs folder is preferable when the script produces file that will change with every experiment (e.g. the resulting model after a run with new settings). They become part of the run history.
-
-After training, save the model file in the project root directory so that it can be picked up by the score.py file (an alternative is to use the shared folder once again).
+The trained keras model (my_model.h5) is saved to the outputs/ folder. This folder must be named outputs/ and receives special treatment. It is not submitted to the compute target when submitting an experiment. Saving files to the outputs folder is preferable when the script produces file that will change with every experiment (e.g. the resulting model after a run with new settings). They become part of the run history. Any outputs saved to this folder, can be retrieved after a run in the GUI or with the CLI.
 
 ## 2.2 score.py
 
 Score.py **generates an API schema (schema.json)** and is also **passed to the CLI to generate a scoring container image**.
 
-Score.py must be run as an "experiment" first. Make sure the required output files from the train.py script are saved to the project root directory first. The schema.json file is saved by run.py to the outputs/ folder. Retrieve this file and also save it to the working directory.
+Score.py must be run as an "experiment" first. The schema.json file is saved by run.py to the outputs/ folder. When running as an experiment (via the GUI or with *az ml experiment submit*), the code below "if __name__ == '__main__'" will run. This part of the code is not relevant inside the service container image when deploying.
 
-The init() and run(..) methods are required. 
-
-Init() defines what happens when the service is first started. In our case, this is mainly loading the model.
-
-Run(input_bytes) defines what happens with an input request. Since the schema was created with DataTypes.STANDARD, it expects a string as input. This string is an encoded version of an input, which is decoded by run(input_bytes) to a numpy array and served to the model. It returns a JSON string as output (required, must be JSON serializable. Otherwise the created webservice will not work). 
+The init() and run(..) methods are required for deploying the service:
+1. Init() defines what happens when the service is first started. In our case, this is mainly loading the model.
+2. Run(input_bytes) defines what happens with an input request. Since the schema was created with DataTypes.STANDARD, it expects a string as input. This string is an encoded version of an input, which is decoded by run(input_bytes) to a numpy array and served to the model. It returns a JSON string as output (required, must be JSON serializable. Otherwise the created webservice will not work).
 
 ## 2.3 callService.py
 
@@ -56,17 +52,21 @@ Unfortunately, the face must be extracted and processed into an encoded string i
 
 example usage: python callService.py --url (*service url*) --path (*path to local image*) --key (*authorization key, when using cluster environment*)
 
+## 2.4 webcamdetect.py
+
+Detects people on the webcam, using the service URL. 
+
 # 3 Deploying
 
 ## 3.1 Setup 
 
-When the model and schema files (my_model.h5 and schema.json) are in place, the service can be deployed. 
+First, an environment must be created. Typically, you will set up a local environment for testing and a cluster environment for deploying. We are talking about deployment environments now, not about compute environments for training! 
 
-First, a compute environment must be created. Typically, you will set up a local environment for testing and a cluster environment for deploying. You will also need to create your model management account in advance. Both are one-time steps.
+You will also need to create your model management account in advance. Both are one-time steps.
 
 More info can be found here, under 'prepare to operationalize locally': https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3
 
-These commands do the following: Login in to Azure, set the environment, set the model management account.
+After creating an environment and model management account, do the following: Login in to Azure, set the environment, set the model management account.
 
 1. az login
 2. az ml env set --name (env name) --resource-group (rg name)
@@ -76,8 +76,8 @@ These commands do the following: Login in to Azure, set the environment, set the
 
 Deploying is done in 4 steps: registering the model (with the given model file), creating a manifest (given the score.py file and the schema), building an image from this manifest and creating a service from this image. Thus, the 4 main components in model management are **models, manifests, images and services.**
 
-1. az ml model register --model my_model.h5 --name my_model.h5
-2. az ml manifest create --manifest-name my_manifest -f score.py -r python -i (*model ID returned by previous command*) -s schema.json -c aml_config\conda_dependencies.yml 
+1. az ml model register --model outputs/my_model.h5 --name my_model.h5
+2. az ml manifest create --manifest-name my_manifest -f score.py -r python -i (*model ID returned by previous command*) -s outputs/schema.json -c aml_config\conda_dependencies.yml 
 3. az ml image create -n imagefacerecognition --manifest-id (*manifest ID returned by previous command*)
 4. az ml service create realtime --image-id (*Image ID returned by previous command*) -n (service name)
 
@@ -95,7 +95,7 @@ See the docs for more info and options.
 
 # 4 Webcamtest and deployToEdge folders (TO DO)
 
-Testing the application in a container so that maybe we can do face recognition on the edge...??
+Testing the application in a container so that maybe we can do face recognition with IoT Edge??
 
 
 
