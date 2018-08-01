@@ -23,7 +23,6 @@ def main(args):
     monitor_faces(url,key=key,plot=True)
 
 def monitor_faces(url,key=None,plot=True):
-#def monitor_faces(plot=True):
     cam = cv2.VideoCapture(0)    
     while True:
         time.sleep(500/1000)
