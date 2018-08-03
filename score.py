@@ -18,16 +18,6 @@ import glob
 #the pretrained model and weights,...
 #just pick up the trained model manually and store in project directory and use load_model("my_model.h5").
 
-
-global index_to_name
-index_to_name = {
-    "0":"buscemi",
-    "1":"clooney",
-    "2":"dicaprio",
-    "3":"jennifer",
-    "4":"pieter",
-    "5":"unknown"
-}
 # TO DO
 # - add model and weights files
 # - set paths to these files in code below
@@ -47,6 +37,14 @@ def init():
     model = load_model("outputs/my_model.h5")
     print("loading model went wrong")
 
+    global index_to_name
+    if os.path.exists("number_to_text_label.json"):
+        with open("number_to_text_label.json","r") as file:
+            index_to_name = json.loads(file.read())
+    else:
+        print("[WARNING] number_to_text_label.json not found.")
+        index_to_name = None
+
 def run(input_bytes):
 
     input_bytes = base64.b64decode(bytes(input_bytes,'utf-8'))
@@ -56,7 +54,11 @@ def run(input_bytes):
     index = np.argmax(prediction)
     outDict = {}
     outDict["index"] = str(index)
-    outDict["label"] = index_to_name[str(index)]
+    if index_to_name is not None:
+        outDict["label"] = index_to_name[str(index)]
+    else:
+        outDict["label"] = "no_label_{0}".format(index)
+
     outJsonString = json.dumps(outDict)
     return (str(outJsonString))
 
@@ -79,6 +81,13 @@ if __name__ == '__main__':
     generate_api_schema()
 
     # If you needed the model (large file) in a Workbench run, you would load it from shared directory.
+    # Files in the outputs folder are not available in the next run, the outputs folder is attached to its own run.
+    # However, in this case we don't need the model file in Workbench runs. The workbench runs are only there to create the schema.json file.
+
+    #When deploying the service...
+    # In the CLI, we must pass the model file as an argument when creating the service image. This model file will be available in outputs/ folder after returning it.
+    # This model file will be copied into the container image with the same path name. So in the service, you can also load it from outputs/<filename>.h5, see init().
+
     # print("loading model from shared directory...")
     # SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
     # model = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))

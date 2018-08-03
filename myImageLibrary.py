@@ -14,14 +14,17 @@ def showimage(title,img):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     
-def extract_face(img,FACE_CASCADE):
+def extract_face(img,FACE_CASCADE,return_rectangles = False):
     img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     rectangles = FACE_CASCADE.detectMultiScale(img_gray, 1.3, 5)
     faces = []
     for (x,y,w,h) in rectangles:
         cropped_face = img[y:y+h,x:x+w]
         faces.append(cropped_face)
-    return faces
+    if return_rectangles:
+        return faces, rectangles
+    else:
+        return faces
 
 def extract_faces_bulk(img_list,FACE_CASCADE):
     return_list = []
@@ -52,7 +55,6 @@ def resize_crop(image,square_size):
 
 
 def get_images(parent_directory):
-    #results = glob.glob(parent_directory+'/*.jpg')+glob.glob(parent_directory+'/*.jpeg')+glob.glob(parent_directory+'/*.png')
     results = glob.glob(os.path.join(parent_directory,'*.jpg'))+glob.glob(os.path.join(parent_directory,'*.jpeg'))+glob.glob(os.path.join(parent_directory,'*.png'))
     images = []
     for result in results:

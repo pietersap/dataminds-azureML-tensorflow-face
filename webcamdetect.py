@@ -10,6 +10,7 @@ import argparse
 import sys
 
 FACE_CASCADE = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+SQUARE_SIZE = 96
 
 def main(args):
     parser = argparse.ArgumentParser(description='Call the face recognition service')
@@ -28,17 +29,19 @@ def monitor_faces(url,key=None,plot=True):
     while True:
         time.sleep(500/1000)
         ret_val, img = cam.read()
+        faces, rectangles = myImageLibrary.extract_face(img,FACE_CASCADE, return_rectangles = True)
         if plot:
+            for (x,y,w,h) in rectangles:
+                cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),3)
             cv2.imshow('Hit escape to quit.',img)
             if cv2.waitKey(1) == 27: 
                 break  # esc to quit
-        faces = myImageLibrary.extract_face(img,FACE_CASCADE)
         if len(faces) == 0:
             print("No faces detected")
         else:
             people = []
             for face in faces:
-                face = myImageLibrary.resize_crop(face,96)
+                face = myImageLibrary.resize_crop(face,SQUARE_SIZE)
                 face_base64 = myImageLibrary.preprocess(face,normalize=True)
                 person = callService.callFaceService(face_base64,url=url,key=key)
                 people.append(person)

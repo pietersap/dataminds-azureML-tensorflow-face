@@ -1,9 +1,9 @@
-# 0. Required Azure ML components
+# 0 Required Azure ML components
 
 1. Experimentation Account: Required for Azure ML Workbench. Contains workspaces, which in turn contain projects. You can add multiple users (seats).
 2. Model Management Account: Used to register, maintain and deploy containerized ML services with the CLI: https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/model-management-cli-reference
 
-# 1. Overview
+# 1 Overview
 
 Building face recognition service using the Azure ML workbench and CLI. We are using a pretrained facenet model on which we add a dense layer with softmax activation for classification. The input to the service is a preprocessed image encoded as a string. 
 
@@ -19,6 +19,8 @@ Train.py **trains and saves the model**. Images are read from files on the share
 3. jennifer (Jennifer Aniston)
 4. pieter (myself)
 5. unknown
+
+Note: you can train with different people by adding more subfolders to the image folder.
 
 The model is trained using the higher-level API Keras with a Tensorflow backend.
 
@@ -97,6 +99,9 @@ See the docs for more info and options.
 
 Testing the application in a container so that maybe we can do face recognition with IoT Edge??
 
+# 5 Further improvement?
+
+1. Add validation of input shape to service + error handling in case the input shape is wrong.
 
 
 
