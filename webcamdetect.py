@@ -12,6 +12,13 @@ import sys
 FACE_CASCADE = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 SQUARE_SIZE = 96
 
+if os.path.exists("number_to_text_label.json"):
+    with open("number_to_text_label.json","r") as file:
+        index_to_name = json.loads(file.read())
+else:
+    print("[WARNING] number_to_text_label.json not found.")
+    index_to_name = None
+
 def main(args):
     parser = argparse.ArgumentParser(description='Call the face recognition service')
     parser.add_argument('-u', '--url', default='http://localhost:32773/score', type=str, help='Service URL')
@@ -43,7 +50,11 @@ def monitor_faces(url,key=None,plot=True):
                 face = myImageLibrary.resize_crop(face,SQUARE_SIZE)
                 face_base64 = myImageLibrary.preprocess(face,normalize=True)
                 person = callService.callFaceService(face_base64,url=url,key=key)
-                people.append(person)
+                # variable 'person' is an integer index (can be mapped to a name)
+                if index_to_name is None:
+                    people.append(person) #adding index number to list
+                else:
+                    people.append(index_to_name[person]) #adding name to list
             print("Detected: ",people)
     if plot:
         cv2.destroyAllWindows()

@@ -1,11 +1,24 @@
-# 0 Required Azure ML components
+# 0 Requirements
+
+## 0.1 Azure ML components
 
 1. Experimentation Account: Required for Azure ML Workbench. Contains workspaces, which in turn contain projects. You can add multiple users (seats).
 2. Model Management Account: Used to register, maintain and deploy containerized ML services with the CLI: https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/model-management-cli-reference
+3. Azure ML Workbench and CLI
+
+## 0.2 Input files
+
+Input files are read from the azure ML shared folder by the training script. These files are not present in this repository. To reproduce this project, provide the input files in your own shared directory. Required files include:
+
+1. Haarcascade_frontalface_default.xml (for the cascade face detector, included in the opencv-python library)
+2. The FACENET model file and weights in Keras format (both .h5 files). When adapting the code slightly, you could also use a .h5 file with contains both the model and the weights. 
+3. Training images. Use one subfolder for each person, and name the subfolder like the person.
 
 # 1 Overview
 
-Building face recognition service using the Azure ML workbench and CLI. We are using a pretrained facenet model on which we add a dense layer with softmax activation for classification. The input to the service is a preprocessed image encoded as a string. 
+Building face recognition service using the Azure ML workbench and CLI. We are using a pretrained facenet model on which we add a dense layer with softmax activation for classification. We use Keras,a higher-level API on top of Tensorflow. 
+
+The input to the created service is a preprocessed image encoded as a string. 
 
 # 2 Scripts
 

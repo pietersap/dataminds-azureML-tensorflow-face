@@ -15,4 +15,4 @@ aml_config/pisa-dsvm.compute
 aml_config/pisa-dsvm.runconfig
 train_old.py
 
-.vscode/settings.json
+

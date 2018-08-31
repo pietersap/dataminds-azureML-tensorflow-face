@@ -37,13 +37,6 @@ def init():
     model = load_model("outputs/my_model.h5")
     print("loading model went wrong")
 
-    global index_to_name
-    if os.path.exists("number_to_text_label.json"):
-        with open("number_to_text_label.json","r") as file:
-            index_to_name = json.loads(file.read())
-    else:
-        print("[WARNING] number_to_text_label.json not found.")
-        index_to_name = None
 
 def run(input_bytes):
 
@@ -54,11 +47,6 @@ def run(input_bytes):
     index = np.argmax(prediction)
     outDict = {}
     outDict["index"] = str(index)
-    if index_to_name is not None:
-        outDict["label"] = index_to_name[str(index)]
-    else:
-        outDict["label"] = "no_label_{0}".format(index)
-
     outJsonString = json.dumps(outDict)
     return (str(outJsonString))
 

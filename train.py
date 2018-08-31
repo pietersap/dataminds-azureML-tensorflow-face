@@ -122,7 +122,7 @@ print("Saving model to outputs folder")
 softmaxmodel.save(os.path.join("outputs","my_model.h5"))
 with open(os.path.join("outputs","number_to_text_label.json"),"w") as jsonfile:
     jsonfile.write(json.dumps(number_to_text_label))
-print("To enable name resolution, please retrieve number_to_text_label.json and save it in project directory before deploying with CLI.")
+print("To enable name resolution when testing, please retrieve number_to_text_label.json and save it in project directory before deploying with CLI.")
 
 print("Saving model to shared folder")
 softmaxmodel.save(os.path.join(SHARED_FOLDER,"my_model.h5"))
