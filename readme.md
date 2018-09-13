@@ -41,7 +41,7 @@ Running this script can be done with the Workbench GUI. Select the script (e.g. 
 
 We are using the outputs folder and the shared folder. More info:   https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/how-to-read-write-files
 
-Input training data and the pretrained model are read from the shared folder. This is a requirement, since these files are to large to be saved in the project folder. Otherwise, they would need to be copied to the compute target every time an experiment is submitted. The shared folder is found with the environment variable "AZUREML_NATIVE_SHARE_DIRECTORY" in the workbench env and can be optionally changed in the 'targetname.compute' file of the compute target.
+Input training data and the pretrained model are read from the shared folder. This is a requirement, since these files are to large to be saved in the project folder. Otherwise, they would need to be copied to the compute target every time an experiment is submitted. The shared folder is found with the environment variable "AZUREML_NATIVE_SHARE_DIRECTORY". 
 
 The trained keras model (my_model.h5) is saved to the outputs/ folder. This folder must be named outputs/ and receives special treatment. It is not submitted to the compute target when submitting an experiment. Saving files to the outputs folder is preferable when the script produces file that will change with every experiment (e.g. the resulting model after a run with new settings). They become part of the run history. Any outputs saved to this folder, can be retrieved after a run in the GUI or with the CLI.
 
