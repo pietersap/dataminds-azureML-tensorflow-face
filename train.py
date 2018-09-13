@@ -1,7 +1,7 @@
 import sys
 import os
 import argparse
-from azureml.logging import get_azureml_logger
+# from azureml.logging import get_azureml_logger
 
 import tensorflow as tf
 import cv2
@@ -22,7 +22,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 
 # initialize the logger
-logger = get_azureml_logger()
+# logger = get_azureml_logger()
 # add experiment arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', help='Number of epochs', default=5,type=int)
@@ -33,19 +33,17 @@ EPOCHS = args.epochs
 print("EPOCHS: {0}".format(EPOCHS))
 # This is how you log scalar metrics
 # logger.log("MyMetric", value)
+
 # Create the outputs folder - save any outputs you want managed by AzureML here
-#os.makedirs('./outputs', exist_ok=True)
+os.makedirs('./outputs', exist_ok=True)
 
 SHARED_FOLDER = os.environ["AZUREML_NATIVE_SHARE_DIRECTORY"]
-print("SHARED FOLDER ",SHARED_FOLDER)
 
-
-#subfolder = "azureml-dataminds-share" #pisa-dsvm (linux dsvm)
-subfolder = 'dataminds' # local
+subfolder = 'train' # local
 
 MODEL_PATH =  os.path.join(SHARED_FOLDER,subfolder,'facenet_nn4_small2_v7.h5') #path to facenet keras model
-PRETRAINED_WEIGHTS_PATH = os.path.join(SHARED_FOLDER,subfolder,'pretrained_weights.h5')
-FACE_CASCADE = cv2.CascadeClassifier(os.path.join(SHARED_FOLDER,subfolder,'haarcascade_frontalface_default.xml'))
+PRETRAINED_WEIGHTS_PATH = os.path.join(SHARED_FOLDER,subfolder,'pretrained_weights.h5') #pretrained weights
+FACE_CASCADE = cv2.CascadeClassifier(os.path.join(SHARED_FOLDER,subfolder, 'haarcascade_frontalface_default.xml')) # for the face detector
 
 print("model path: ",MODEL_PATH)
 print("weights path: ",PRETRAINED_WEIGHTS_PATH)
@@ -62,6 +60,8 @@ def face_list_to_array(face_list):
     return faces_array
 
 # (1) READING AND PREPARING THE DATA
+
+#images must be stored in the correct shared directory, in a folder called "images". This folder must contain subdirectories for images of each person. The name of the subdirectories must match the persons name;
 
 #find all image folders in /SHARED_FOLDER/subfolder/images/
 image_folder = os.path.join(SHARED_FOLDER,subfolder,'images')
@@ -92,6 +92,7 @@ label_array = np.array(number_labels)
 output_onehot = convert_to_one_hot(label_array,len(folders)).T 
 
 X_train, X_test, Y_train, Y_test = train_test_split(face_array,output_onehot)
+# We will evaluate the model accuracy on the test data. For simplicity, no hyperparameter tuning is done here.
 
 print("Loading facenet model...(ignore warning, we compile it later)")
 facemodel = load_model(MODEL_PATH)
@@ -122,7 +123,7 @@ print("Saving model to outputs folder")
 softmaxmodel.save(os.path.join("outputs","my_model.h5"))
 with open(os.path.join("outputs","number_to_text_label.json"),"w") as jsonfile:
     jsonfile.write(json.dumps(number_to_text_label))
-print("To enable name resolution when testing, please retrieve number_to_text_label.json and save it in project directory before deploying with CLI.")
+print("To return names instead of indexes when testing, please retrieve number_to_text_label.json and save it in project directory before deploying with CLI.")
 
 print("Saving model to shared folder")
 softmaxmodel.save(os.path.join(SHARED_FOLDER,"my_model.h5"))
@@ -132,10 +133,9 @@ with open(os.path.join(SHARED_FOLDER,"number_to_text_label.json"),"w") as jsonfi
 print("Done")
 
 print("Evaluating fitted model")
-#softmaxmodel = load_model(os.path.join(SHARED_FOLDER,"my_model.h5"))
 accuracy = softmaxmodel.evaluate(x=X_test,y=Y_test)[1]
-print(accuracy)
-logger.log("accuracy",accuracy)
+print("accuracy: ",accuracy)
+# logger.log("accuracy",accuracy)
 pred = softmaxmodel.predict(X_test)
 cm = confusion_matrix(np.argmax(Y_test,axis=1),np.argmax(pred,axis=1))
 print(cm)

@@ -37,7 +37,7 @@ Note: you can train with different people by adding more subfolders to the image
 
 The model is trained using the higher-level API Keras with a Tensorflow backend.
 
-Running this script can be done with the Workbench GUI. Select the script (e.g. train.py), add arguments if applicable, and run. The script is then submitted to the compute target (e.g. local). Can also be done with the CLI.
+Running this script can be done with the Workbench GUI. Select the script (e.g. train.py), add arguments if applicable, and run. The script is then submitted to the compute target (e.g. local). See next section.
 
 We are using the outputs folder and the shared folder. More info:   https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/how-to-read-write-files
 
@@ -71,50 +71,119 @@ example usage: python callService.py --url (*service url*) --path (*path to loca
 
 Detects people on the webcam, using the service URL. 
 
-# 3 Deploying
+# 3 Submitting the experiments (training)
+
+First, the experiments train.py and score.py must be run on the compute target. Train.py will **create a trained model**, score.py will **create a schema.json file**. 
+
+**attach computetarget**
+
+In the example below, an Azure Datascience Virtual Machine is used as remote compute target.
+
+az ml computetarget attach remote -a (hostname/ip-address) -n (targetname) -u (username) [-w (password)]
+
+This creates two files, targetname.runconfig and targetname.compute. These contain information about the connection and configuration.   
+
+More info about compute target types and configuration can be found in the [Documentation](https://docs.microsoft.com/en-us/azure/machine-learning/desktop-workbench/experimentation-service-configuration-reference)
+
+**prepare the environment (installing dependencies etc.)**
+
+- az ml experiment prepare -c (targetname)
+
+
+**Submit the training experiment (train.py) to the remote target**
+
+- az ml experiment submit -c (targetname) train.py [--epochs 5]
+
+The script reads files (training data and base model) from the Azure ML shared directory. Make sure these files are present on the target machine in this directory. The shared directory location is set with the environment variable AZUREML_NATIVE_SHARE_DIRECTORY. Save the model files and images in this directory.
+
+View the history of all previous runs with the following command. The run history is stored in the associated storage account and stores output files (most notable the model file) and metrics (if configured) for each run. All files stored in the 'outputs/' folder by the script, are considered outputs to be saved in history.
+
+- az ml history list
+
+**Return generated model**
+
+This command will return the outputs of the experiment (situated on the target computer, in the outputs/ folder of that specific run) back to your local outputs/ folder in the project directory.
+
+- az ml experiment return -r (run-id) -t (target name)
+
+The run id is found in the output of the 'submit' command.
+
+Along with the model, a number_to_text_label.json file is also present in the outputs of the experiment. Copy this file from the outputs/ folder to the root of the working directory. Otherwise, the service will return numbers instead of people's names. If the file remains in outputs/, it will not be present in the service container created in the next section.
+
+# 3 Deploying the service
+
+Our model is now trained and ready to be used. Using this model, we can create a service that takes an image as input and returns the name of the recognized person. 
 
 ## 3.1 Setup 
 
-First, an environment must be created. Typically, you will set up a local environment for testing and a cluster environment for deploying. We are talking about deployment environments now, not about compute environments for training! 
+First, an environment must be created. Typically, you will set up a local environment for testing and a cluster environment for deploying. We are talking about deployment environments now, not about compute environments for training! You will also need to create your model management account in advance. Both are one-time steps. If not yet registered, register for the *Microsoft.ContainerRegistry* Resource provider.
 
-You will also need to create your model management account in advance. Both are one-time steps.
+The commands below perform these steps. More info can be found [here](https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3), under 'prepare to operationalize locally'. The second command creates a *local* deployment environment for testing. Later, we will create a cluster environment in Azure Container Services.
 
-More info can be found here, under 'prepare to operationalize locally': https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3
+- az provider register --namespace Microsoft.ContainerRegistry 
+- az ml env setup -n (new env name) --location "West Europe"
+- az ml account modelmanagement create --location "West Europe" -n (new account name) -g (existing resource group name) --sku-name S1
 
 After creating an environment and model management account, do the following: Login in to Azure, set the environment, set the model management account.
 
-1. az login
-2. az ml env set --name (env name) --resource-group (rg name)
-3. az ml account modelmanagement set --name (account name) --resource-group (rg name)
+- az login
+- az ml env set --name (env name) --resource-group (rg name)
+- az ml account modelmanagement set --name (account name) --resource-group (rg name)
 
-## 3.2 Deploying
+## 3.2 Deploying locally
 
 Deploying is done in 4 steps: registering the model (with the given model file), creating a manifest (given the score.py file and the schema), building an image from this manifest and creating a service from this image. Thus, the 4 main components in model management are **models, manifests, images and services.**
 
-1. az ml model register --model outputs/my_model.h5 --name my_model.h5
-2. az ml manifest create --manifest-name my_manifest -f score.py -r python -i (*model ID returned by previous command*) -s outputs/schema.json -c aml_config\conda_dependencies.yml 
-3. az ml image create -n imagefacerecognition --manifest-id (*manifest ID returned by previous command*)
-4. az ml service create realtime --image-id (*Image ID returned by previous command*) -n (service name)
+- az ml model register --model outputs/my_model.h5 --name my_model.h5
+- az ml manifest create --manifest-name my_manifest -f score.py -r python -i (*model ID returned by previous command*) -s outputs/schema.json -c aml_config\conda_dependencies.yml 
+- az ml image create -n imagefacerecognition --manifest-id (*manifest ID returned by previous command*)
+- az ml service create realtime --image-id (*Image ID returned by previous command*) -n (service name)
 
-These 4 steps can also be done in one command. https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3
+These 4 steps can also be done in one command. More info [here](https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3).
 
 The registered models, manifests, images and services can be reviewed in the Model Management Account from the Azure portal.
 
 The image is stored in an Azure container registry with a automatically generated name. There is (currently?) no option to store the image in your own registry. Locate the container with "az ml image usage -i (*image ID*)"
 
-After the service was created, you can obtain the URL with the following command. In case of a cluster environment (AKS), this will also return an authorization key: **az ml service usage realtime -i (..)**
+After the service was created, you can obtain the URL with the following command. In case of a cluster environment (AKS), this will also return an authorization key: 
 
-See the callService.py script for an example on how to use the service.
+- az ml service usage realtime -i (*service-id*)
 
-See the docs for more info and options.
+## 3.3 Deploying in an Azure Container Services (AKS) cluster
 
-# 4 Webcamtest and deployToEdge folders (TO DO)
+AKS is Azure's Kubernetes offering. With just a few commands, we can provision a cluster and deploy our service to it. 
 
-Testing the application in a container so that maybe we can do face recognition with IoT Edge??
+Setup a new **cluster environment** for deploying. 
 
-# 5 Further improvement?
+- az ml env setup -n (*new cluster name*) --location "West Europe" --cluster
 
-1. Add validation of input shape to service + error handling in case the input shape is wrong.
+Switch to this new environment and set execution context to cluster. The resource group for the -g parameter is created automatically when creating the environment and is typically named *(*new cluster name*)rg*. (also see *az ml env list*).
+
+- az ml env set -n (*new cluster name*) -g (*resource group')
+- az ml env cluster
+
+Now, use the *image* created in the previous section and create a service in exactly the same way. 
+
+- az ml service create realtime --image-id (*Image ID*) -n (service name)
+
+Obtain the service URL and authorization key.
+
+- az ml service usage realtime -i (*service-id*)
+- az ml service keys realtime -i (*service-id*)
+
+After testing, don't forget to clean up the resources. The AKS cluster environment is expensive, take it down immediately. 
+
+
+
+## 3.4 Testing the model
+
+See the **callService.py** script for an example on how to use the service.
+
+- python callService.py --url (*service URL*) --path (*path to test image*) [--key (*authorization key, if applicable. For cluster environments.*)]
+
+The **webcamdetect.py** script reads input from your webcam (if one is present) and outputs the people detected in the frame. Use a local service for this.
+
+- python webcamdetect.py --url (*service URL*) [--key (*if applicable*)]
 
 
 

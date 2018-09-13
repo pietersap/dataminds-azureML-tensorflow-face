@@ -1,5 +1,4 @@
 import numpy as np
-import pydot
 import scipy.misc
 import cv2
 import glob
