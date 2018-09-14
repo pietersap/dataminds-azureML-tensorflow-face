@@ -8,7 +8,7 @@
 
 ## 0.2 Input files
 
-Input files are read from the azure ML shared folder by the training script. These files are not present in this repository. To reproduce this project, provide the input files in your own shared directory. Required files include:
+Input files are read from the azure ML shared folder by the training script.  These files are [can be downloaded here](https://drive.google.com/file/d/1dOnKL4UoUhzccjY93o66gYkwd_Ljjm-F/view?usp=sharing). Save the files to the Azure ML shared directory on the compute target (see 2.1).
 
 1. Haarcascade_frontalface_default.xml (for the cascade face detector, included in the opencv-python library)
 2. The FACENET model file and weights in Keras format (both .h5 files). When adapting the code slightly, you could also use a .h5 file with contains both the model and the weights. 
@@ -16,7 +16,7 @@ Input files are read from the azure ML shared folder by the training script. The
 
 # 1 Overview
 
-Building face recognition service using the Azure ML workbench and CLI. We are using a pretrained facenet model on which we add a dense layer with softmax activation for classification. We use Keras,a higher-level API on top of Tensorflow. 
+Building face recognition service using the Azure ML workbench and CLI. We are using a pretrained facenet model on which we add a dense layer with softmax activation for classification. We use Keras, a higher-level API on top of Tensorflow. 
 
 The input to the created service is a preprocessed image encoded as a string. 
 
@@ -24,14 +24,7 @@ The input to the created service is a preprocessed image encoded as a string.
 
 ## 2.1 train.py
 
-Train.py **trains and saves the model**. Images are read from files on the shared directory of the compute target, faces are extracted with a cascade classifier and then these faces are used to train a model. Starting from a pretrained facenet model,we add an extra dense layer with softmax activation to classify our own images into 6 categories:
-
-0. buscemi (Steve Buscemi)
-1. clooney (George Clooney)
-2. dicaprio (Leonardo Dicaprio)
-3. jennifer (Jennifer Aniston)
-4. pieter (myself)
-5. unknown
+Train.py **trains and saves the model**. Images are read from files on the shared directory of the compute target, faces are extracted with a cascade classifier and then these faces are used to train a model. Starting from a pretrained facenet model,we add an extra dense layer with softmax activation to classify our own images. You can add extra people by just adding extra folders of images.
 
 Note: you can train with different people by adding more subfolders to the image folder.
 
@@ -43,7 +36,7 @@ We are using the outputs folder and the shared folder. More info:   https://docs
 
 Input training data and the pretrained model are read from the shared folder. This is a requirement, since these files are to large to be saved in the project folder. Otherwise, they would need to be copied to the compute target every time an experiment is submitted. The shared folder is found with the environment variable "AZUREML_NATIVE_SHARE_DIRECTORY". 
 
-The trained keras model (my_model.h5) is saved to the outputs/ folder. This folder must be named outputs/ and receives special treatment. It is not submitted to the compute target when submitting an experiment. Saving files to the outputs folder is preferable when the script produces file that will change with every experiment (e.g. the resulting model after a run with new settings). They become part of the run history. Any outputs saved to this folder, can be retrieved after a run in the GUI or with the CLI.
+The trained keras model (my_model.h5) is saved to the outputs/ folder. This folder must be named outputs/ and receives special treatment. It is not submitted to the compute target when submitting an experiment. Saving files to the outputs folder is preferable when the script produces file that will change with every experiment (e.g. the resulting model after a run with new settings). They become part of the run history. Any outputs saved to this folder, can be retrieved after a run in the GUI or with the CLI, by specifying the run ID.
 
 ## 2.2 score.py
 
@@ -77,9 +70,9 @@ First, the experiments train.py and score.py must be run on the compute target. 
 
 **attach computetarget**
 
-In the example below, an Azure Datascience Virtual Machine is used as remote compute target.
+Attaching a remote computetarget is done with the command below.
 
-az ml computetarget attach remote -a (hostname/ip-address) -n (targetname) -u (username) [-w (password)]
+az ml computetarget attach remote -a (*hostname/ip-address*) -n (*new targetname*) -u (*username*) [-w (*password*)]
 
 This creates two files, targetname.runconfig and targetname.compute. These contain information about the connection and configuration.   
 
@@ -87,12 +80,12 @@ More info about compute target types and configuration can be found in the [Docu
 
 **prepare the environment (installing dependencies etc.)**
 
-- az ml experiment prepare -c (targetname)
+- az ml experiment prepare -c (*targetname*)
 
 
 **Submit the training experiment (train.py) to the remote target**
 
-- az ml experiment submit -c (targetname) train.py [--epochs 5]
+- az ml experiment submit -c (*targetname*) train.py [--epochs 5]
 
 The script reads files (training data and base model) from the Azure ML shared directory. Make sure these files are present on the target machine in this directory. The shared directory location is set with the environment variable AZUREML_NATIVE_SHARE_DIRECTORY. Save the model files and images in this directory.
 
@@ -104,7 +97,7 @@ View the history of all previous runs with the following command. The run histor
 
 This command will return the outputs of the experiment (situated on the target computer, in the outputs/ folder of that specific run) back to your local outputs/ folder in the project directory.
 
-- az ml experiment return -r (run-id) -t (target name)
+- az ml experiment return -r (*run-id*) -t (*target name*)
 
 The run id is found in the output of the 'submit' command.
 
@@ -121,14 +114,18 @@ First, an environment must be created. Typically, you will set up a local enviro
 The commands below perform these steps. More info can be found [here](https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3), under 'prepare to operationalize locally'. The second command creates a *local* deployment environment for testing. Later, we will create a cluster environment in Azure Container Services.
 
 - az provider register --namespace Microsoft.ContainerRegistry 
-- az ml env setup -n (new env name) --location "West Europe"
-- az ml account modelmanagement create --location "West Europe" -n (new account name) -g (existing resource group name) --sku-name S1
+- az ml env setup -n (*new env name*) --location "West Europe"
+- az ml account modelmanagement create --location "West Europe" -n (*new account name*) -g (*resource group name*) --sku-name S1
+
+Find the resource group name associated with the environment with
+
+- az ml env show
 
 After creating an environment and model management account, do the following: Login in to Azure, set the environment, set the model management account.
 
 - az login
-- az ml env set --name (env name) --resource-group (rg name)
-- az ml account modelmanagement set --name (account name) --resource-group (rg name)
+- az ml env set --name (*env name*) --resource-group (*rg name*)
+- az ml account modelmanagement set --name (*account name*) --resource-group (*rg name*)
 
 ## 3.2 Deploying locally
 
@@ -137,7 +134,7 @@ Deploying is done in 4 steps: registering the model (with the given model file),
 - az ml model register --model outputs/my_model.h5 --name my_model.h5
 - az ml manifest create --manifest-name my_manifest -f score.py -r python -i (*model ID returned by previous command*) -s outputs/schema.json -c aml_config\conda_dependencies.yml 
 - az ml image create -n imagefacerecognition --manifest-id (*manifest ID returned by previous command*)
-- az ml service create realtime --image-id (*Image ID returned by previous command*) -n (service name)
+- az ml service create realtime --image-id (*Image ID returned by previous command*) -n (*service name*)
 
 These 4 steps can also be done in one command. More info [here](https://docs.microsoft.com/en-gb/azure/machine-learning/desktop-workbench/tutorial-classifying-iris-part-3).
 
@@ -159,20 +156,22 @@ Setup a new **cluster environment** for deploying.
 
 Switch to this new environment and set execution context to cluster. The resource group for the -g parameter is created automatically when creating the environment and is typically named *(*new cluster name*)rg*. (also see *az ml env list*).
 
-- az ml env set -n (*new cluster name*) -g (*resource group')
+- az ml env set -n (*cluster name*) -g (*resource group')
 - az ml env cluster
 
 Now, use the *image* created in the previous section and create a service in exactly the same way. 
 
-- az ml service create realtime --image-id (*Image ID*) -n (service name)
+- az ml service create realtime --image-id (*Image ID*) -n (*service name*)
 
-Obtain the service URL and authorization key.
+The previous command will output the service ID. Now, obtain the service URL and authorization key.
 
 - az ml service usage realtime -i (*service-id*)
 - az ml service keys realtime -i (*service-id*)
 
-After testing, don't forget to clean up the resources. The AKS cluster environment is expensive, take it down immediately. 
+After testing, don't forget to clean up the resources. The AKS cluster environment is not free, take it down immediately. 
 
+az ml service delete realtime –i (*service ID*)
+az ml env delete -n (*cluster name*) -g (*resource group name*)
 
 
 ## 3.4 Testing the model
@@ -184,7 +183,3 @@ See the **callService.py** script for an example on how to use the service.
 The **webcamdetect.py** script reads input from your webcam (if one is present) and outputs the people detected in the frame. Use a local service for this.
 
 - python webcamdetect.py --url (*service URL*) [--key (*if applicable*)]
-
-
-
-

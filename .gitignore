@@ -15,10 +15,4 @@ aml_config/pisa-dsvm.compute
 aml_config/pisa-dsvm.runconfig
 presentation-commands.txt
 commandCheatsheet.md
-
-
-
-
-.vscode/settings.json
-
 .vscode/settings.json
