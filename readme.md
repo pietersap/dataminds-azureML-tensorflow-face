@@ -1,4 +1,4 @@
-﻿**Notice: ** Important changes to Azure Machine Learning might make (parts of) this repository and the documentation invalid. [(More info)](https://docs.microsoft.com/en-us/azure/machine-learning/service/overview-what-happened-to-workbench)
+﻿ **NOTICE:** Important changes to Azure Machine Learning might make (parts of) this repository and the documentation invalid. [(More info)](https://docs.microsoft.com/en-us/azure/machine-learning/service/overview-what-happened-to-workbench)
 
 # 0 Requirements
 
