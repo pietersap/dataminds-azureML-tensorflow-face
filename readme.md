@@ -1,4 +1,23 @@
-﻿ **NOTICE:** Important changes to Azure Machine Learning might make (parts of) this repository and the documentation invalid. [(More info)](https://docs.microsoft.com/en-us/azure/machine-learning/service/overview-what-happened-to-workbench)
+﻿# MIGRATING TO THE NEW AZURE ML
+
+This project was originally built for the *old* Azure Machine Learning Service. As of September 2018, the Azure ML service has changed drastically. Some of the improvements are:
+
+* A powerful Python SDK to create projects, manage models, deploy services, create compute targets...
+* Azure ML Workbench desktop application is deprecated
+* "Machine learning experimentation account", the Workbench App, and "model management account" have been replaced by one clear Azure resource, the *new* Azure ML service workspace. 
+
+The following is an overview of how I migrated an existing service to the new Azure ML. This gives no info about the training of the model in the new Azure ML, since training was already done. It describes how to migrate the models, images and services. After this section, the documentation was not updated starting from section "0". This overview assumes some familiarity with the Azure ML service. 
+
+The new way of deploying a service with the Python SDK is demonstrated in the notebook newAzureML_deploy.ipynb. Below is an overview of steps that I took in order to support this deployment.
+
+1. Fetch the trained model of a succesful run (from the Azure Portal or in the deprecated Azure ML workbench) and save it to this working directory (my_model.h5), it is loaded from the notebook.
+2. Since there is now a nice Python SDK, we can handle everything in Python and without the Azure ML CLI. The process is described in the notebook "newAzureML_deploy.ipynb".
+3. Added a file "config.json" with info about my own Azure ML workspace. See the quickstarts on how to create one, or adapt the file "config_example.json" and rename it to "config.json". This file is loaded in the notebook.
+4. newAzureML_score.py is a slightly adapted version of score.py. It leverages the new SDK in the init() function to easily get the path to the model inside the container image, but you could also just use the old score.py file. 
+5. A new conda dependencies file was made for the image creation (aml_config/newAzureML_env.yml) to support this new scoring file. 
+6. callService.py and webcamdetect.py might no longer work, but calling the service is now easily done from the Python SDK. This is also demonstrated in the notebook. 
+7. Other files have remained the same.
+
 
 # 0 Requirements
 

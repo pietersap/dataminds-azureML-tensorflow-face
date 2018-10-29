@@ -16,3 +16,5 @@ aml_config/pisa-dsvm.runconfig
 presentation-commands.txt
 commandCheatsheet.md
 .vscode/settings.json
+my_model.h5
+config.json
